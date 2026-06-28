@@ -1,0 +1,23 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: it\n"
+
+msgid "Active Mascot Companion:"
+msgstr "Mascotte attiva:"
+
+msgid "Display Metadata:"
+msgstr "Mostra metadati:"
+
+msgid "Show Status and Battery Labels"
+msgstr "Mostra le etichette di stato e batteria"
+
+msgid "Kite Core Glow (Hex Color):"
+msgstr "Bagliore del Kite Core (Colore Hex):"
+
+msgid "CORE STATUS: ONLINE"
+msgstr "STATO DEL CORE: IN LINEA"
+
+msgid "BATTERY: 100%"
+msgstr "BATTERIA: 100%"

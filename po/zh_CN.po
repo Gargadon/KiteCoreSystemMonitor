@@ -1,0 +1,23 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+
+msgid "Active Mascot Companion:"
+msgstr "启用的吉祥物伙伴:"
+
+msgid "Display Metadata:"
+msgstr "显示元数据:"
+
+msgid "Show Status and Battery Labels"
+msgstr "显示状态和电池标签"
+
+msgid "Kite Core Glow (Hex Color):"
+msgstr "Kite Core 发光 (十六进制颜色):"
+
+msgid "CORE STATUS: ONLINE"
+msgstr "核心状态: 在线"
+
+msgid "BATTERY: 100%"
+msgstr "电池: 100%"

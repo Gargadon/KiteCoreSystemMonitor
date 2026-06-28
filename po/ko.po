@@ -1,0 +1,23 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+msgid "Active Mascot Companion:"
+msgstr "활성화된 마스코트:"
+
+msgid "Display Metadata:"
+msgstr "메타데이터 표시:"
+
+msgid "Show Status and Battery Labels"
+msgstr "상태 및 배터리 표시"
+
+msgid "Kite Core Glow (Hex Color):"
+msgstr "Kite Core 광원 (Hex 색상):"
+
+msgid "CORE STATUS: ONLINE"
+msgstr "코어 상태: 온라인"
+
+msgid "BATTERY: 100%"
+msgstr "배터리: 100%"

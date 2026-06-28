@@ -1,0 +1,24 @@
+{
+    "KPlugin": {
+        "Name": "Kite Core System Monitor",
+        "Description": "A system monitor widget themed around the Kite Core electronic medals from Kite Wars",
+        "Icon": "sensors",
+        "Id": "org.gargadon.kitecoresystemmonitor",
+        "TranslationDomain": "plasma_applet_org.gargadon.kitecoresystemmonitor",
+        "ServiceTypes": [
+            "Plasma/Applet"
+        ],
+        "Version": "1.0.0",
+        "Website": "https://github.com/Gargadon/KiteCoreSystemMonitor",
+        "Category": "System Information",
+        "License": "MIT and CC-BY-ND-4.0",
+        "Authors": [
+            {
+                "Name": "David Kantún",
+                "Email": "dkantun@gmail.com"
+            }
+        ]
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "KPackageStructure": "Plasma/Applet"
+}
