@@ -28,8 +28,8 @@ Unicode true
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller Pages
-!insertmacro MUI_PAGE_UNINSTCONFIRM
-!insertmacro MUI_PAGE_UNINSTFILES
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
 
 ; Language
 !insertmacro MUI_LANGUAGE "Spanish"
