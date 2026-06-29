@@ -1,0 +1,72 @@
+name: Build and Package WinUI 3 App
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x' # Matches target framework net10.0
+
+    - name: Decode Signing Certificate
+      shell: powershell
+      run: |
+        if ("${{ secrets.BASE64_ENCODED_PFX }}" -ne "") {
+            $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
+            [System.IO.File]::WriteAllBytes("windows\KiteCoreDevCert_CI.pfx", $pfx_cert_byte)
+            Write-Host "Certificate decoded successfully."
+        } else {
+            Write-Host "No signing certificate secret found. Building unsigned packages."
+        }
+
+    - name: Publish and Package MSIX (UWP/Store Installer)
+      shell: powershell
+      run: |
+        if (Test-Path "windows\KiteCoreDevCert_CI.pfx") {
+            # Build and sign MSIX package using decoded PFX certificate
+            dotnet publish windows\KiteCoreWindowsMonitor.csproj -c Release /p:GenerateAppxPackageOnBuild=true /p:PackageCertificateKeyFile=KiteCoreDevCert_CI.pfx /p:PackageCertificatePassword="${{ secrets.PFX_PASSWORD }}"
+        } else {
+            # Build unsigned MSIX package (prevents build failures if secrets aren't set)
+            dotnet publish windows\KiteCoreWindowsMonitor.csproj -c Release /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=false
+        }
+
+    - name: Publish Standalone Executable (Unpackaged with separate DLLs)
+      run: |
+        # Generates a self-contained publish folder with the EXE and all required DLLs
+        dotnet publish windows\KiteCoreWindowsMonitor.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=false /p:WindowsPackageType=None
+
+    - name: Install NSIS
+      run: |
+        # Install Nullsoft Scriptable Install System (NSIS) via Chocolatey
+        choco install nsis -y
+        # Add NSIS compiler directory to the runner PATH
+        echo "C:\Program Files (x86)\NSIS" >> $env:GITHUB_PATH
+
+    - name: Compile NSIS Installer
+      run: |
+        # Run NSIS compiler to package the published files (EXE, DLLs, assets) into a single installer
+        makensis windows\installer.nsi
+
+    - name: Upload MSIX Installer Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: KiteCoreWindowsMonitor-MSIX-Package
+        path: windows/AppPackages/
+
+    - name: Upload NSIS Installer Setup (EXE)
+      uses: actions/upload-artifact@v4
+      with:
+        name: KiteCoreSystemMonitor-NSIS-Installer
+        path: windows/bin/Release/net10.0-windows10.0.26100.0/win-x64/KiteCoreSystemMonitor_Setup.exe

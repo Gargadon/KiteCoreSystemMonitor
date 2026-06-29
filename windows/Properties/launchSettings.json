@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "KiteCoreWindowsMonitor (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "KiteCoreWindowsMonitor (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
