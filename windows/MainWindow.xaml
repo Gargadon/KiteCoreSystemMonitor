@@ -17,8 +17,8 @@
         <Grid.ContextFlyout>
             <MenuFlyout>
                 <MenuFlyoutSubItem x:Name="MascotMenu" Text="Mascot">
-                    <ToggleMenuFlyoutItem x:Name="MascotTetsu" Text="Tetsu Kurobane" IsChecked="True" Click="MascotTetsu_Click"/>
-                    <ToggleMenuFlyoutItem x:Name="MascotHakka" Text="Hakka Aoyama" IsChecked="False" Click="MascotHakka_Click"/>
+                    <ToggleMenuFlyoutItem x:Name="MascotTetsu" Text="Tetsuya &quot;Tetsu&quot; Kurobane" IsChecked="True" Click="MascotTetsu_Click"/>
+                    <ToggleMenuFlyoutItem x:Name="MascotHakka" Text="Souta &quot;Hakka&quot; Aoyama" IsChecked="False" Click="MascotHakka_Click"/>
                 </MenuFlyoutSubItem>
                 <MenuFlyoutSubItem x:Name="ColorMenu" Text="Core Glow Color">
                     <MenuFlyoutItem x:Name="ColorCyanItem" Text="Cyan (Default)" Click="ColorCyan_Click"/>

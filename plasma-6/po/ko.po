@@ -21,3 +21,9 @@ msgstr "코어 상태: 온라인"
 
 msgid "BATTERY: 100%"
 msgstr "배터리: 100%"
+
+msgid "Tetsuya \"Tetsu\" Kurobane (Owner)"
+msgstr "쿠로바네 테츠야 (테츠)"
+
+msgid "Souta \"Hakka\" Aoyama (Hacker)"
+msgstr "아오야마 소우타 (해커)"

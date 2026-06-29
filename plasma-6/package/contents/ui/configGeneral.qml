@@ -32,14 +32,17 @@ Item {
             id: mascotCombo
             Layout.fillWidth: true
             model: ListModel {
-                ListElement { text: "Tetsu Kurobane (Owner)"; value: "tetsu" }
-                ListElement { text: "Hakka Aoyama (Hacker)"; value: "hakka" }
+                id: mascotModel
+                ListElement { text: "Tetsuya \"Tetsu\" Kurobane (Owner)"; value: "tetsu" }
+                ListElement { text: "Souta \"Hakka\" Aoyama (Hacker)"; value: "hakka" }
             }
             textRole: "text"
             valueRole: "value"
             
             // Find current index based on loaded config
             Component.onCompleted: {
+                mascotModel.setProperty(0, "text", i18n("Tetsuya \"Tetsu\" Kurobane (Owner)"));
+                mascotModel.setProperty(1, "text", i18n("Souta \"Hakka\" Aoyama (Hacker)"));
                 for (var i = 0; i < model.count; i++) {
                     if (model.get(i).value === Plasmoid.configuration.mascot) {
                         currentIndex = i;

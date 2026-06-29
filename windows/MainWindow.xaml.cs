@@ -328,6 +328,8 @@ namespace KiteCoreWindowsMonitor
 
             // Translation tables
             string mascotText = "Mascot";
+            string tetsuName = "Tetsuya \"Tetsu\" Kurobane";
+            string hakkaName = "Souta \"Hakka\" Aoyama";
             string colorText = "Core Glow Color";
             string cyanText = "Cyan (Default)";
             string purpleText = "Purple";
@@ -432,6 +434,8 @@ namespace KiteCoreWindowsMonitor
                     languageText = "语言";
                     coreStatusText = "核心状态: 在线";
                     systemText = "系统: 运行中";
+                    tetsuName = "黑羽铁矢（铁）";
+                    hakkaName = "青山聪太（黑客）";
                     break;
                 case "ja":
                     mascotText = "マスコット";
@@ -447,6 +451,8 @@ namespace KiteCoreWindowsMonitor
                     languageText = "言語";
                     coreStatusText = "コアステータス: オンライン";
                     systemText = "システム: アクティブ";
+                    tetsuName = "黒羽鉄矢（鉄）";
+                    hakkaName = "青山聡太 （ハッカー）";
                     break;
                 case "ko":
                     mascotText = "마스코트";
@@ -462,11 +468,15 @@ namespace KiteCoreWindowsMonitor
                     languageText = "언어";
                     coreStatusText = "코어 상태: 온라인";
                     systemText = "시스템: 활성";
+                    tetsuName = "쿠로바네 테츠야 (테츠)";
+                    hakkaName = "아오야마 소우타 (해커)";
                     break;
             }
 
             // Update UI elements
             if (MascotMenu != null) MascotMenu.Text = mascotText;
+            if (MascotTetsu != null) MascotTetsu.Text = tetsuName;
+            if (MascotHakka != null) MascotHakka.Text = hakkaName;
             if (ColorMenu != null) ColorMenu.Text = colorText;
             if (ColorCyanItem != null) ColorCyanItem.Text = cyanText;
             if (ColorPurpleItem != null) ColorPurpleItem.Text = purpleText;

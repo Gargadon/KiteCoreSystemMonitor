@@ -21,3 +21,9 @@ msgstr "コアステータス: オンライン"
 
 msgid "BATTERY: 100%"
 msgstr "バッテリー: 100%"
+
+msgid "Tetsuya \"Tetsu\" Kurobane (Owner)"
+msgstr "黒羽鉄矢（鉄）"
+
+msgid "Souta \"Hakka\" Aoyama (Hacker)"
+msgstr "青山聡太 （ハッカー）"

@@ -1,4 +1,4 @@
-name: Build and Package WinUI 3 App
+name: Build and Package WinUI 3 App with NSIS
 
 on:
   push:
@@ -20,31 +20,9 @@ jobs:
       with:
         dotnet-version: '10.0.x' # Matches target framework net10.0
 
-    - name: Decode Signing Certificate
-      shell: powershell
+    - name: Publish Standalone Executable (Unpackaged with DLLs and Assets)
       run: |
-        if ("${{ secrets.BASE64_ENCODED_PFX }}" -ne "") {
-            $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
-            [System.IO.File]::WriteAllBytes("windows\KiteCoreDevCert_CI.pfx", $pfx_cert_byte)
-            Write-Host "Certificate decoded successfully."
-        } else {
-            Write-Host "No signing certificate secret found. Building unsigned packages."
-        }
-
-    - name: Publish and Package MSIX (UWP/Store Installer)
-      shell: powershell
-      run: |
-        if (Test-Path "windows\KiteCoreDevCert_CI.pfx") {
-            # Build and sign MSIX package using decoded PFX certificate
-            dotnet publish windows\KiteCoreWindowsMonitor.csproj -c Release /p:GenerateAppxPackageOnBuild=true /p:PackageCertificateKeyFile=KiteCoreDevCert_CI.pfx /p:PackageCertificatePassword="${{ secrets.PFX_PASSWORD }}"
-        } else {
-            # Build unsigned MSIX package (prevents build failures if secrets aren't set)
-            dotnet publish windows\KiteCoreWindowsMonitor.csproj -c Release /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=false
-        }
-
-    - name: Publish Standalone Executable (Unpackaged with separate DLLs)
-      run: |
-        # Generates a self-contained publish folder with the EXE and all required DLLs
+        # Generates a self-contained publish folder containing the EXE, all DLLs, and the Assets directory
         dotnet publish windows\KiteCoreWindowsMonitor.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=false /p:WindowsPackageType=None
 
     - name: Install NSIS
@@ -56,14 +34,8 @@ jobs:
 
     - name: Compile NSIS Installer
       run: |
-        # Run NSIS compiler to package the published files (EXE, DLLs, assets) into a single installer
+        # Run NSIS compiler to package the published files (EXE, DLLs, Assets) into a single setup installer
         makensis windows\installer.nsi
-
-    - name: Upload MSIX Installer Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: KiteCoreWindowsMonitor-MSIX-Package
-        path: windows/AppPackages/
 
     - name: Upload NSIS Installer Setup (EXE)
       uses: actions/upload-artifact@v4

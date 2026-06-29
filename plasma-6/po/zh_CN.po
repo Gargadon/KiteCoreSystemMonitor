@@ -21,3 +21,9 @@ msgstr "核心状态: 在线"
 
 msgid "BATTERY: 100%"
 msgstr "电池: 100%"
+
+msgid "Tetsuya \"Tetsu\" Kurobane (Owner)"
+msgstr "黑羽铁矢（铁）"
+
+msgid "Souta \"Hakka\" Aoyama (Hacker)"
+msgstr "青山聪太（黑客）"

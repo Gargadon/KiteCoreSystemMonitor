@@ -65,3 +65,20 @@ _ReSharper*/
 # Generated files
 Generated\ Files/
 *_wpftmp.csproj
+
+## Android / Gradle
+.gradle/
+build/
+local.properties
+*.apk
+*.aar
+*.aab
+*.ap_
+*.jks
+*.keystore
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+*.iml
+
