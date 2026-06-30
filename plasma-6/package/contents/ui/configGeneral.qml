@@ -15,6 +15,7 @@ Item {
     property alias cfg_mascot: mascotCombo.currentValue
     property alias cfg_showLabels: showLabelsCheck.checked
     property alias cfg_coreColor: coreColorInput.text
+    property alias cfg_opacity: opacitySlider.value
 
     GridLayout {
         anchors.fill: parent
@@ -72,6 +73,19 @@ Item {
             id: coreColorInput
             Layout.fillWidth: true
             placeholderText: "#f59e0b"
+        }
+
+        // Background Opacity
+        Label {
+            text: i18n("Background Opacity:")
+            Layout.alignment: Qt.AlignVCenter
+        }
+        Slider {
+            id: opacitySlider
+            from: 0.0
+            to: 1.0
+            stepSize: 0.1
+            Layout.fillWidth: true
         }
     }
 }

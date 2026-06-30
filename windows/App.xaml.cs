@@ -21,6 +21,7 @@ namespace KiteCoreWindowsMonitor;
 /// </summary>
 public partial class App : Application
 {
+    private static System.Threading.Mutex? _mutex;
     private Window? _window;
     
     /// <summary>
@@ -29,6 +30,12 @@ public partial class App : Application
     /// </summary>
     public App()
     {
+        _mutex = new System.Threading.Mutex(true, "KiteCoreSystemMonitorSingleInstanceMutex", out bool createdNew);
+        if (!createdNew)
+        {
+            System.Environment.Exit(0);
+            return;
+        }
         System.Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", System.AppContext.BaseDirectory);
         InitializeComponent();
     }

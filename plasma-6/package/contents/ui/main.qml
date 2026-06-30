@@ -14,10 +14,14 @@ PlasmoidItem {
     width: 240
     height: 240
     
+    // Disable default background to draw our own custom opacity background
+    Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
+
     // Plasmoid configuration properties
     readonly property string mascot: Plasmoid.configuration.mascot // "tetsu" or "hakka"
     readonly property bool showLabels: Plasmoid.configuration.showLabels
     readonly property color coreColor: Plasmoid.configuration.coreColor
+    readonly property double bgOpacity: Plasmoid.configuration.opacity
     
     // Determine the active glow color based on the configuration or theme default
     readonly property color activeCoreColor: {
@@ -60,6 +64,16 @@ PlasmoidItem {
         duration: 8000
         loops: Animation.Infinite
         running: true
+    }
+
+    // Custom Background Rectangle with Opacity config
+    Rectangle {
+        anchors.fill: parent
+        color: "#121212"
+        opacity: root.bgOpacity
+        radius: 20
+        border.width: 1.5
+        border.color: "#35ffffff"
     }
 
     // Outer Layout

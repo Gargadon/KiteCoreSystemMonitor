@@ -2,9 +2,8 @@ name: Build and Package WinUI 3 App with NSIS
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+    tags:
+      - '*'
   workflow_dispatch:
 
 jobs:

@@ -29,6 +29,14 @@
                 </MenuFlyoutSubItem>
                 <ToggleMenuFlyoutItem x:Name="ToggleLabelsItem" Text="Show Extra Labels" IsChecked="True" Click="ToggleLabels_Click"/>
                 <ToggleMenuFlyoutItem x:Name="PinToDesktopItem" Text="Pin to Desktop" IsChecked="False" Click="PinToDesktop_Click"/>
+                <ToggleMenuFlyoutItem x:Name="StartWithWindowsItem" Text="Start with Windows" IsChecked="False" Click="StartWithWindows_Click"/>
+                <MenuFlyoutSubItem x:Name="OpacityMenu" Text="Widget Opacity">
+                    <ToggleMenuFlyoutItem x:Name="Opacity100" Text="100%" Click="Opacity_Click"/>
+                    <ToggleMenuFlyoutItem x:Name="Opacity80" Text="80%" Click="Opacity_Click"/>
+                    <ToggleMenuFlyoutItem x:Name="Opacity60" Text="60%" Click="Opacity_Click"/>
+                    <ToggleMenuFlyoutItem x:Name="Opacity40" Text="40%" Click="Opacity_Click"/>
+                    <ToggleMenuFlyoutItem x:Name="Opacity20" Text="20%" Click="Opacity_Click"/>
+                </MenuFlyoutSubItem>
                 <MenuFlyoutSeparator />
                 <MenuFlyoutSubItem x:Name="LanguageMenu" Text="Language / Idioma">
                     <ToggleMenuFlyoutItem x:Name="LangEnglish" Text="English" IsChecked="False" Click="LangEnglish_Click"/>
@@ -42,12 +50,13 @@
                     <ToggleMenuFlyoutItem x:Name="LangKorean" Text="한국어" IsChecked="False" Click="LangKorean_Click"/>
                 </MenuFlyoutSubItem>
                 <MenuFlyoutSeparator />
+                <MenuFlyoutItem x:Name="AboutItem" Text="About Widget" Click="About_Click" Icon="Info"/>
                 <MenuFlyoutItem x:Name="ExitItem" Text="Exit Widget" Click="Exit_Click" Icon="Cancel"/>
             </MenuFlyout>
         </Grid.ContextFlyout>
 
         <!-- Main Card Widget -->
-        <Border Margin="10" CornerRadius="20" Background="#A0121212" BorderThickness="1.5" BorderBrush="#35FFFFFF">
+        <Border x:Name="MainBorder" Margin="10" CornerRadius="20" Background="#A0121212" BorderThickness="1.5" BorderBrush="#35FFFFFF">
             <Grid Padding="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />

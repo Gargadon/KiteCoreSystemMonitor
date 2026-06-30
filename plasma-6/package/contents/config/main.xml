@@ -13,5 +13,8 @@
         <entry name="coreColor" type="Color">
             <default>#f59e0b</default>
         </entry>
+        <entry name="opacity" type="Double">
+            <default>0.6</default>
+        </entry>
     </group>
 </kcfg>

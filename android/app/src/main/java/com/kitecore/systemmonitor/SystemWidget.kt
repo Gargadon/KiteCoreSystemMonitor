@@ -34,6 +34,7 @@ class SystemWidget : GlanceAppWidget() {
         val ColorKey = stringPreferencesKey("glow_color")
         val ShowLabelsKey = booleanPreferencesKey("show_labels")
         val LanguageKey = stringPreferencesKey("language")
+        val OpacityKey = floatPreferencesKey("bg_opacity")
     }
 
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
@@ -52,6 +53,7 @@ class SystemWidget : GlanceAppWidget() {
         val activeMascot = prefs[MascotKey] ?: "Tetsu"
         val showLabels = prefs[ShowLabelsKey] ?: true
         val language = prefs[LanguageKey] ?: "es"
+        val opacity = prefs[OpacityKey] ?: 0.6f
 
         // Mascot state based on CPU usage
         val stateType = when {
@@ -139,16 +141,19 @@ class SystemWidget : GlanceAppWidget() {
         }
 
         val mascotDisplayName = when (language) {
-            "ja" -> if (activeMascot == "Tetsu") "黒羽鉄矢（鉄）" else "青山聡太 （ハッカー）"
-            "zh" -> if (activeMascot == "Tetsu") "黑羽铁矢（铁）" else "青山聪太（黑客）"
-            "ko" -> if (activeMascot == "Tetsu") "쿠로바네 테츠야 (테츠)" else "아오야마 소우타 (해커)"
-            else -> if (activeMascot == "Tetsu") "Tetsuya \"Tetsu\" Kurobane" else "Souta \"Hakka\" Aoyama"
+            "ja" -> if (activeMascot == "Tetsu") "鉄" else "ハッカー"
+            "zh" -> if (activeMascot == "Tetsu") "铁" else "黑客"
+            "ko" -> if (activeMascot == "Tetsu") "테츠" else "해커"
+            else -> activeMascot
         }
+
+        val alphaInt = (opacity * 255).toInt().coerceIn(0, 255)
+        val backgroundColorInt = (alphaInt shl 24) or 0x00121212
 
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(ColorProvider(Color(0xA0121212.toInt())))
+                .background(ColorProvider(Color(backgroundColorInt)))
                 .padding(12.dp)
                 .cornerRadius(20.dp)
                 .clickable(actionStartActivity<MainActivity>())

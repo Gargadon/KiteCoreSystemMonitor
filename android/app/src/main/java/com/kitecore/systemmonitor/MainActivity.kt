@@ -67,6 +67,7 @@ class MainActivity : ComponentActivity() {
                         state[SystemWidget.ColorKey] = prefs.getString("glow_color", "#00F0FF") ?: "#00F0FF"
                         state[SystemWidget.ShowLabelsKey] = prefs.getBoolean("show_labels", true)
                         state[SystemWidget.LanguageKey] = prefs.getString("language", "es") ?: "es"
+                        state[SystemWidget.OpacityKey] = prefs.getFloat("bg_opacity", 0.6f)
                     }
                     SystemWidget().update(context, glanceId)
                 }
@@ -84,6 +85,7 @@ class MainActivity : ComponentActivity() {
         var glowColor by remember { mutableStateOf(prefs.getString("glow_color", "#00F0FF") ?: "#00F0FF") }
         var showLabels by remember { mutableStateOf(prefs.getBoolean("show_labels", true)) }
         var language by remember { mutableStateOf(prefs.getString("language", "es") ?: "es") }
+        var bgOpacity by remember { mutableStateOf(prefs.getFloat("bg_opacity", 0.6f)) }
 
         // Localized strings
         val isEs = language == "es"
@@ -93,6 +95,7 @@ class MainActivity : ComponentActivity() {
         val serviceDesc = if (isEs) "Actualiza el widget cada 3 segundos" else "Updates widget every 3 seconds"
         val mascotLabel = if (isEs) "Mascota activa" else "Active Mascot"
         val colorLabel = if (isEs) "Color del brillo" else "Glow Color"
+        val opacityLabel = if (isEs) "Opacidad del fondo" else "Background Opacity"
         val labelsToggleLabel = if (isEs) "Mostrar etiquetas extra" else "Show Extra Labels"
         val langLabel = if (isEs) "Idioma" else "Language"
 
@@ -212,33 +215,24 @@ class MainActivity : ComponentActivity() {
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = mascotLabel, fontWeight = FontWeight.Bold, color = Color.White)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("Tetsu", "Hakka").forEach { mascot ->
-                                val selected = activeMascot == mascot
-                                Button(
-                                    onClick = {
-                                        activeMascot = mascot
-                                        prefs.edit().putString("active_mascot", mascot).commit()
-                                        updateWidgets()
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (selected) Color(0xFF00F0FF) else Color(0xFF2C2C2C),
-                                        contentColor = if (selected) Color.Black else Color.White
-                                    ),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    val displayName = when (language) {
-                                        "ja" -> if (mascot == "Tetsu") "黒羽鉄矢（鉄）" else "青山聡太 （ハッカー）"
-                                        "zh" -> if (mascot == "Tetsu") "黑羽铁矢（铁）" else "青山聪太（黑客）"
-                                        "ko" -> if (mascot == "Tetsu") "쿠로바네 테츠야 (테츠)" else "아오야마 소우타 (해커)"
-                                        else -> if (mascot == "Tetsu") "Tetsuya \"Tetsu\" Kurobane" else "Souta \"Hakka\" Aoyama"
-                                    }
-                                    Text(text = displayName)
+                        DropdownSelect(
+                            label = mascotLabel,
+                            options = listOf("Tetsu", "Hakka"),
+                            selectedOption = activeMascot,
+                            onOptionSelected = { mascot ->
+                                activeMascot = mascot
+                                prefs.edit().putString("active_mascot", mascot).commit()
+                                updateWidgets()
+                            },
+                            getLabel = { mascot ->
+                                when (language) {
+                                    "ja" -> if (mascot == "Tetsu") "黒羽鉄矢（鉄）" else "青山聡太 （ハッカー）"
+                                    "zh" -> if (mascot == "Tetsu") "黑羽铁矢（铁）" else "青山聪太（黑客）"
+                                    "ko" -> if (mascot == "Tetsu") "쿠로바네 테츠야 (테츠)" else "아오야마 소우타 (해커)"
+                                    else -> if (mascot == "Tetsu") "Tetsuya \"Tetsu\" Kurobane" else "Souta \"Hakka\" Aoyama"
                                 }
                             }
-                        }
+                        )
                     }
                 }
 
@@ -290,6 +284,38 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Background Opacity Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = opacityLabel, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(text = "${(bgOpacity * 100).toInt()}%", color = Color.Gray)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Slider(
+                            value = bgOpacity,
+                            onValueChange = { value ->
+                                bgOpacity = value
+                                prefs.edit().putFloat("bg_opacity", value).commit()
+                                updateWidgets()
+                            },
+                            valueRange = 0.0f..1.0f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color(0xFF00F0FF),
+                                activeTrackColor = Color(0xFF005060)
+                            )
+                        )
+                    }
+                }
+
                 // 4. Language & UI Toggles Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -316,8 +342,6 @@ class MainActivity : ComponentActivity() {
 
                         Divider(color = Color(0xFF2C2C2C), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
 
-                        Text(text = langLabel, color = Color.White)
-                        Spacer(modifier = Modifier.height(8.dp))
                         val langList = listOf(
                             "es" to "Español",
                             "en" to "English",
@@ -329,39 +353,64 @@ class MainActivity : ComponentActivity() {
                             "ja" to "日本語",
                             "ko" to "한국어"
                         )
-                        val chunkedLangs = langList.chunked(3)
-                        
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            chunkedLangs.forEach { rowItems ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    rowItems.forEach { (lang, label) ->
-                                        val selected = language == lang
-                                        Button(
-                                            onClick = {
-                                                language = lang
-                                                prefs.edit().putString("language", lang).commit()
-                                                updateWidgets()
-                                            },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = if (selected) Color(0xFF00F0FF) else Color(0xFF2C2C2C),
-                                                contentColor = if (selected) Color.Black else Color.White
-                                            ),
-                                            modifier = Modifier.weight(1f),
-                                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
-                                        ) {
-                                            Text(
-                                                text = label,
-                                                fontSize = 11.sp,
-                                                maxLines = 1
-                                            )
-                                        }
-                                    }
+                        DropdownSelect(
+                            label = langLabel,
+                            options = langList,
+                            selectedOption = langList.firstOrNull { it.first == language } ?: ("es" to "Español"),
+                            onOptionSelected = { pair ->
+                                language = pair.first
+                                prefs.edit().putString("language", pair.first).commit()
+                                updateWidgets()
+                            },
+                            getLabel = { it.second }
+                        )
+                    }
+                }
+
+                // 5. About Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = if (language == "es") "Acerca de" else "About",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Kite Core System Monitor v1.0.0",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = if (language == "es") 
+                                "Un monitor de recursos del sistema en tiempo real con Tetsu y Hakka." 
+                            else 
+                                "A real-time system resource monitor widget featuring Tetsu and Hakka.",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "GitHub: https://github.com/Gargadon/KiteCoreSystemMonitor",
+                            fontSize = 11.sp,
+                            color = Color(0xFF00F0FF),
+                            modifier = Modifier.clickable {
+                                try {
+                                    val intent = android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        android.net.Uri.parse("https://github.com/Gargadon/KiteCoreSystemMonitor")
+                                    )
+                                    this@MainActivity.startActivity(intent)
+                                } catch (e: Exception) {
+                                    // Ignore failures if no browser is installed
                                 }
                             }
-                        }
+                        )
                     }
                 }
             }
@@ -395,4 +444,53 @@ fun KiteCoreTheme(content: @Composable () -> Unit) {
         ),
         content = content
     )
+}
+
+@Composable
+fun <T> DropdownSelect(
+    label: String,
+    options: List<T>,
+    selectedOption: T,
+    onOptionSelected: (T) -> Unit,
+    getLabel: (T) -> String
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(text = label, fontWeight = FontWeight.Bold, color = Color.White)
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFF2C2C2C))
+                .clickable { expanded = true }
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = getLabel(selectedOption), color = Color.White)
+                Text(text = "▼", color = Color.Gray, fontSize = 12.sp)
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(Color(0xFF2C2C2C))
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(text = getLabel(option), color = Color.White) },
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
 }

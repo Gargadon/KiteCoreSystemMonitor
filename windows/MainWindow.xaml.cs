@@ -9,9 +9,25 @@ using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Windowing;
 using Windows.Foundation;
+using Microsoft.Win32;
+using System.IO;
+using System.Text.Json;
 
 namespace KiteCoreWindowsMonitor
 {
+    public class AppSettings
+    {
+        public int X { get; set; } = -1;
+        public int Y { get; set; } = -1;
+        public bool StartWithWindows { get; set; } = false;
+        public string ActiveMascot { get; set; } = "tetsu";
+        public string GlowColor { get; set; } = "#00F0FF";
+        public bool ShowLabels { get; set; } = true;
+        public bool PinnedToDesktop { get; set; } = true;
+        public string Language { get; set; } = "es";
+        public double Opacity { get; set; } = 0.6;
+    }
+
     public sealed partial class MainWindow : Window
     {
         // Win32 API Imports for Dragging & TopMost
@@ -20,6 +36,9 @@ namespace KiteCoreWindowsMonitor
 
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int MessageBox(IntPtr hWnd, string lpText, string lpCaption, uint uType);
 
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HTCAPTION = 2;
@@ -80,6 +99,11 @@ namespace KiteCoreWindowsMonitor
         private string _activeMascot = "tetsu"; // "tetsu" or "hakka"
         private bool _showLabels = true;
         private SolidColorBrush? _activeCoreColor;
+        private string _glowColorHex = "#00F0FF";
+        private bool _startWithWindows = false;
+        private int _savedX = -1;
+        private int _savedY = -1;
+        private double _bgOpacity = 0.6;
 
         // CPU tracking
         private ulong _prevIdleTime = 0;
@@ -90,8 +114,11 @@ namespace KiteCoreWindowsMonitor
         {
             this.InitializeComponent();
 
-            // Set custom core glow color (Cyan by default)
-            SetCoreColor(ColorHelper.FromArgb(255, 0, 240, 255));
+            // Load settings first
+            LoadSettings();
+
+            // Set custom core glow color from settings
+            SetCoreColorByHex(_glowColorHex);
 
             // Set window title and customize titlebar
             this.Title = "Kite Core System Monitor";
@@ -104,6 +131,12 @@ namespace KiteCoreWindowsMonitor
             if (appWindow != null)
             {
                 appWindow.Resize(new Windows.Graphics.SizeInt32(250, 270));
+
+                // Restore position if valid
+                if (_savedX != -1 && _savedY != -1)
+                {
+                    appWindow.Move(new Windows.Graphics.PointInt32(_savedX, _savedY));
+                }
                 
                 // Set custom icon
                 string iconPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Assets", "AppIcon.ico");
@@ -133,11 +166,28 @@ namespace KiteCoreWindowsMonitor
             // First run tick
             UpdateSystemStats();
 
-            // Set language to Spanish by default
-            ApplyLanguage("es");
+            // Apply saved language
+            ApplyLanguage(_currentLanguage);
 
-            // Pin to desktop by default
-            SetDesktopMode(true);
+            // Apply saved desktop mode
+            SetDesktopMode(_isPinnedToDesktop);
+
+            // Set labels visibility
+            ToggleLabelsItem.IsChecked = _showLabels;
+            ExtraInfoRow.Visibility = _showLabels ? Visibility.Visible : Visibility.Collapsed;
+
+            // Set mascot check states
+            MascotTetsu.IsChecked = _activeMascot == "tetsu";
+            MascotHakka.IsChecked = _activeMascot == "hakka";
+
+            // Set start with Windows check state
+            StartWithWindowsItem.IsChecked = _startWithWindows;
+
+            // Set background opacity
+            SetOpacity(_bgOpacity);
+
+            // Subscribe to Closed event to save settings
+            this.Closed += MainWindow_Closed;
         }
 
         private void StartRotationAnimation()
@@ -306,11 +356,11 @@ namespace KiteCoreWindowsMonitor
             UpdateSystemStats();
         }
 
-        private void ColorCyan_Click(object sender, RoutedEventArgs e) => SetCoreColor(ColorHelper.FromArgb(255, 0, 240, 255));
-        private void ColorPurple_Click(object sender, RoutedEventArgs e) => SetCoreColor(ColorHelper.FromArgb(255, 168, 85, 247));
-        private void ColorEmerald_Click(object sender, RoutedEventArgs e) => SetCoreColor(ColorHelper.FromArgb(255, 16, 185, 129));
-        private void ColorAmber_Click(object sender, RoutedEventArgs e) => SetCoreColor(ColorHelper.FromArgb(255, 245, 158, 11));
-        private void ColorRose_Click(object sender, RoutedEventArgs e) => SetCoreColor(ColorHelper.FromArgb(255, 244, 63, 94));
+        private void ColorCyan_Click(object sender, RoutedEventArgs e) => SetCoreColorByHex("#00F0FF");
+        private void ColorPurple_Click(object sender, RoutedEventArgs e) => SetCoreColorByHex("#A855F7");
+        private void ColorEmerald_Click(object sender, RoutedEventArgs e) => SetCoreColorByHex("#10B981");
+        private void ColorAmber_Click(object sender, RoutedEventArgs e) => SetCoreColorByHex("#F59E0B");
+        private void ColorRose_Click(object sender, RoutedEventArgs e) => SetCoreColorByHex("#F43F5E");
 
         private void ToggleLabels_Click(object sender, RoutedEventArgs e)
         {
@@ -338,6 +388,9 @@ namespace KiteCoreWindowsMonitor
             string roseText = "Rose";
             string showLabelsText = "Show Extra Labels";
             string pinDesktopText = "Pin to Desktop";
+            string startWithWindowsText = "Start with Windows";
+            string opacityMenuText = "Widget Opacity";
+            string aboutText = "About Widget";
             string exitText = "Exit Widget";
             string languageText = "Language";
             string coreStatusText = "CORE STATUS: ONLINE";
@@ -355,6 +408,9 @@ namespace KiteCoreWindowsMonitor
                     roseText = "Rosa";
                     showLabelsText = "Mostrar etiquetas";
                     pinDesktopText = "Fijar al escritorio";
+                    startWithWindowsText = "Arrancar con Windows";
+                    opacityMenuText = "Opacidad del widget";
+                    aboutText = "Acerca del widget";
                     exitText = "Salir";
                     languageText = "Idioma";
                     coreStatusText = "ESTADO DEL NÚCLEO: EN LÍNEA";
@@ -367,9 +423,12 @@ namespace KiteCoreWindowsMonitor
                     purpleText = "Violet";
                     emeraldText = "Émeraude";
                     amberText = "Ambre";
-                    roseText = "Rose";
+                    roseText = "Rosa";
                     showLabelsText = "Afficher les étiquettes";
                     pinDesktopText = "Épingler au bureau";
+                    startWithWindowsText = "Démarrer avec Windows";
+                    opacityMenuText = "Opacité du widget";
+                    aboutText = "À propos du widget";
                     exitText = "Quitter le widget";
                     languageText = "Langue";
                     coreStatusText = "STATUT DU NOYAU: EN LIGNE";
@@ -385,6 +444,9 @@ namespace KiteCoreWindowsMonitor
                     roseText = "Rosa";
                     showLabelsText = "Mostra etichette extra";
                     pinDesktopText = "Aggiungi al desktop";
+                    startWithWindowsText = "Avvia con Windows";
+                    opacityMenuText = "Opacità del widget";
+                    aboutText = "Informazioni sul widget";
                     exitText = "Esci dal widget";
                     languageText = "Lingua";
                     coreStatusText = "STATO DEL NUCLEO: IN LINEA";
@@ -400,6 +462,9 @@ namespace KiteCoreWindowsMonitor
                     roseText = "Rosa";
                     showLabelsText = "Zusatzlabels anzeigen";
                     pinDesktopText = "An Desktop anheften";
+                    startWithWindowsText = "Mit Windows starten";
+                    opacityMenuText = "Widget-Deckkraft";
+                    aboutText = "Über das Widget";
                     exitText = "Widget beenden";
                     languageText = "Sprache";
                     coreStatusText = "KERN-STATUS: ONLINE";
@@ -415,6 +480,9 @@ namespace KiteCoreWindowsMonitor
                     roseText = "Rosa";
                     showLabelsText = "Mostrar etiquetas";
                     pinDesktopText = "Fixar na área de trabalho";
+                    startWithWindowsText = "Iniciar con o Windows";
+                    opacityMenuText = "Opacidade do widget";
+                    aboutText = "Sobre o widget";
                     exitText = "Sair do widget";
                     languageText = "Idioma";
                     coreStatusText = "ESTADO DO NÚCLEO: ONLINE";
@@ -430,6 +498,9 @@ namespace KiteCoreWindowsMonitor
                     roseText = "玫瑰红";
                     showLabelsText = "显示额外标签";
                     pinDesktopText = "固定到桌面";
+                    startWithWindowsText = "随 Windows 启动";
+                    opacityMenuText = "小部件不透明度";
+                    aboutText = "关于小部件";
                     exitText = "退出小部件";
                     languageText = "语言";
                     coreStatusText = "核心状态: 在线";
@@ -447,6 +518,9 @@ namespace KiteCoreWindowsMonitor
                     roseText = "ローズ";
                     showLabelsText = "追加のラベルを表示";
                     pinDesktopText = "デスクトップにピン留め";
+                    startWithWindowsText = "Windows 起動時に実行";
+                    opacityMenuText = "不透明度";
+                    aboutText = "バージョン情報";
                     exitText = "終了";
                     languageText = "言語";
                     coreStatusText = "コアステータス: オンライン";
@@ -464,6 +538,9 @@ namespace KiteCoreWindowsMonitor
                     roseText = "장미색";
                     showLabelsText = "추가 레이블 표시";
                     pinDesktopText = "바탕화면에 고정";
+                    startWithWindowsText = "Windows 시작 시 실행";
+                    opacityMenuText = "위젯 불투명도";
+                    aboutText = "위젯 정보";
                     exitText = "위젯 종료";
                     languageText = "언어";
                     coreStatusText = "코어 상태: 온라인";
@@ -485,6 +562,9 @@ namespace KiteCoreWindowsMonitor
             if (ColorRoseItem != null) ColorRoseItem.Text = roseText;
             if (ToggleLabelsItem != null) ToggleLabelsItem.Text = showLabelsText;
             if (PinToDesktopItem != null) PinToDesktopItem.Text = pinDesktopText;
+            if (StartWithWindowsItem != null) StartWithWindowsItem.Text = startWithWindowsText;
+            if (OpacityMenu != null) OpacityMenu.Text = opacityMenuText;
+            if (AboutItem != null) AboutItem.Text = aboutText;
             if (ExitItem != null) ExitItem.Text = exitText;
             if (LanguageMenu != null) LanguageMenu.Text = languageText;
 
@@ -587,10 +667,213 @@ namespace KiteCoreWindowsMonitor
         private void LangJapanese_Click(object sender, RoutedEventArgs e) => ApplyLanguage("ja");
         private void LangKorean_Click(object sender, RoutedEventArgs e) => ApplyLanguage("ko");
 
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+            var handle = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            string title = "Kite Core System Monitor";
+            string text;
+            
+            if (_currentLanguage == "es")
+            {
+                text = "Kite Core System Monitor v1.0.0\n" +
+                       "Desarrollado por David Kantún\n\n" +
+                       "Un monitor de recursos del sistema en tiempo real con Tetsu y Hakka.\n" +
+                       "Repositorio: https://github.com/Gargadon/KiteCoreSystemMonitor";
+            }
+            else
+            {
+                text = "Kite Core System Monitor v1.0.0\n" +
+                       "Developed by David Kantún\n\n" +
+                       "A real-time system resource monitor widget featuring Tetsu and Hakka.\n" +
+                       "Repository: https://github.com/Gargadon/KiteCoreSystemMonitor";
+            }
+            
+            MessageBox(handle, text, title, 0x00000040); // MB_OK | MB_ICONINFORMATION
+        }
+
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             _timer.Stop();
             this.Close();
+        }
+
+        private void LoadSettings()
+        {
+            try
+            {
+                string appDataFolder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KiteCoreSystemMonitor");
+                string settingsPath = System.IO.Path.Combine(appDataFolder, "settings.json");
+                if (System.IO.File.Exists(settingsPath))
+                {
+                    string json = System.IO.File.ReadAllText(settingsPath);
+                    var settings = System.Text.Json.JsonSerializer.Deserialize<AppSettings>(json);
+                    if (settings != null)
+                    {
+                        _savedX = settings.X;
+                        _savedY = settings.Y;
+                        _startWithWindows = settings.StartWithWindows;
+                        _activeMascot = settings.ActiveMascot;
+                        _glowColorHex = settings.GlowColor;
+                        _showLabels = settings.ShowLabels;
+                        _isPinnedToDesktop = settings.PinnedToDesktop;
+                        _currentLanguage = settings.Language;
+                        _bgOpacity = settings.Opacity;
+                    }
+                }
+                
+                _startWithWindows = GetStartWithWindows();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading settings: {ex.Message}");
+            }
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                string appDataFolder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KiteCoreSystemMonitor");
+                if (!System.IO.Directory.Exists(appDataFolder))
+                {
+                    System.IO.Directory.CreateDirectory(appDataFolder);
+                }
+                string settingsPath = System.IO.Path.Combine(appDataFolder, "settings.json");
+
+                int x = -1, y = -1;
+                var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
+                var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle);
+                var appWindow = AppWindow.GetFromWindowId(windowId);
+                if (appWindow != null)
+                {
+                    x = appWindow.Position.X;
+                    y = appWindow.Position.Y;
+                }
+
+                var settings = new AppSettings
+                {
+                    X = x,
+                    Y = y,
+                    StartWithWindows = _startWithWindows,
+                    ActiveMascot = _activeMascot,
+                    GlowColor = _glowColorHex,
+                    ShowLabels = _showLabels,
+                    PinnedToDesktop = _isPinnedToDesktop,
+                    Language = _currentLanguage,
+                    Opacity = _bgOpacity
+                };
+
+                string json = System.Text.Json.JsonSerializer.Serialize(settings);
+                System.IO.File.WriteAllText(settingsPath, json);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving settings: {ex.Message}");
+            }
+        }
+
+        private void SetOpacity(double opacity)
+        {
+            _bgOpacity = opacity;
+            if (MainBorder != null)
+            {
+                byte alpha = (byte)(opacity * 255);
+                MainBorder.Background = new SolidColorBrush(ColorHelper.FromArgb(alpha, 18, 18, 18));
+            }
+            UpdateOpacityMenuChecks();
+        }
+
+        private void UpdateOpacityMenuChecks()
+        {
+            if (Opacity100 != null) Opacity100.IsChecked = Math.Abs(_bgOpacity - 1.0) < 0.05;
+            if (Opacity80 != null) Opacity80.IsChecked = Math.Abs(_bgOpacity - 0.8) < 0.05;
+            if (Opacity60 != null) Opacity60.IsChecked = Math.Abs(_bgOpacity - 0.6) < 0.05;
+            if (Opacity40 != null) Opacity40.IsChecked = Math.Abs(_bgOpacity - 0.4) < 0.05;
+            if (Opacity20 != null) Opacity20.IsChecked = Math.Abs(_bgOpacity - 0.2) < 0.05;
+        }
+
+        private void Opacity_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleMenuFlyoutItem item)
+            {
+                if (item == Opacity100) SetOpacity(1.0);
+                else if (item == Opacity80) SetOpacity(0.8);
+                else if (item == Opacity60) SetOpacity(0.6);
+                else if (item == Opacity40) SetOpacity(0.4);
+                else if (item == Opacity20) SetOpacity(0.2);
+            }
+        }
+
+        private void SetStartWithWindows(bool enable)
+        {
+            _startWithWindows = enable;
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true)!)
+                {
+                    if (enable)
+                    {
+                        key.SetValue("KiteCoreSystemMonitor", $"\"{Environment.ProcessPath}\"");
+                    }
+                    else
+                    {
+                        key.DeleteValue("KiteCoreSystemMonitor", false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to set registry key: {ex.Message}");
+            }
+        }
+
+        private bool GetStartWithWindows()
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", false)!)
+                {
+                    return key?.GetValue("KiteCoreSystemMonitor") != null;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void StartWithWindows_Click(object sender, RoutedEventArgs e)
+        {
+            bool enable = StartWithWindowsItem.IsChecked;
+            SetStartWithWindows(enable);
+        }
+
+        private void MainWindow_Closed(object sender, WindowEventArgs args)
+        {
+            SaveSettings();
+        }
+
+        private void SetCoreColorByHex(string hex)
+        {
+            _glowColorHex = hex;
+            switch (hex)
+            {
+                case "#A855F7":
+                    SetCoreColor(ColorHelper.FromArgb(255, 168, 85, 247));
+                    break;
+                case "#10B981":
+                    SetCoreColor(ColorHelper.FromArgb(255, 16, 185, 129));
+                    break;
+                case "#F59E0B":
+                    SetCoreColor(ColorHelper.FromArgb(255, 245, 158, 11));
+                    break;
+                case "#F43F5E":
+                    SetCoreColor(ColorHelper.FromArgb(255, 244, 63, 94));
+                    break;
+                default:
+                    SetCoreColor(ColorHelper.FromArgb(255, 0, 240, 255));
+                    break;
+            }
         }
     }
 }
