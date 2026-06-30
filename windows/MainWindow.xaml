@@ -50,7 +50,7 @@
                     <ToggleMenuFlyoutItem x:Name="LangKorean" Text="한국어" IsChecked="False" Click="LangKorean_Click"/>
                 </MenuFlyoutSubItem>
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Name="AboutItem" Text="About Widget" Click="About_Click" Icon="Info"/>
+                <MenuFlyoutItem x:Name="AboutItem" Text="About Widget" Click="About_Click" Icon="Help"/>
                 <MenuFlyoutItem x:Name="ExitItem" Text="Exit Widget" Click="Exit_Click" Icon="Cancel"/>
             </MenuFlyout>
         </Grid.ContextFlyout>

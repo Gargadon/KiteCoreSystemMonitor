@@ -675,14 +675,14 @@ namespace KiteCoreWindowsMonitor
             
             if (_currentLanguage == "es")
             {
-                text = "Kite Core System Monitor v1.0.0\n" +
+                text = "Kite Core System Monitor v1.0.1\n" +
                        "Desarrollado por David Kantún\n\n" +
                        "Un monitor de recursos del sistema en tiempo real con Tetsu y Hakka.\n" +
                        "Repositorio: https://github.com/Gargadon/KiteCoreSystemMonitor";
             }
             else
             {
-                text = "Kite Core System Monitor v1.0.0\n" +
+                text = "Kite Core System Monitor v1.0.1\n" +
                        "Developed by David Kantún\n\n" +
                        "A real-time system resource monitor widget featuring Tetsu and Hakka.\n" +
                        "Repository: https://github.com/Gargadon/KiteCoreSystemMonitor";

@@ -381,7 +381,7 @@ class MainActivity : ComponentActivity() {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Kite Core System Monitor v1.0.0",
+                            text = "Kite Core System Monitor v1.0.1",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

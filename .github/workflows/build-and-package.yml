@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout Repository
@@ -21,8 +23,9 @@ jobs:
 
     - name: Publish Standalone Executable (Unpackaged with DLLs and Assets)
       run: |
-        # Generates a self-contained publish folder containing the EXE, all DLLs, and the Assets directory
+        # Generates a self-contained publish folder containing the EXE, all DLLs, and the Assets directory for x64 and arm64
         dotnet publish windows\KiteCoreWindowsMonitor.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=false /p:WindowsPackageType=None
+        dotnet publish windows\KiteCoreWindowsMonitor.csproj -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=false /p:WindowsPackageType=None
 
     - name: Install NSIS
       run: |
@@ -33,11 +36,24 @@ jobs:
 
     - name: Compile NSIS Installer
       run: |
-        # Run NSIS compiler to package the published files (EXE, DLLs, Assets) into a single setup installer
-        makensis windows\installer.nsi
+        # Run NSIS compiler to package the published files (EXE, DLLs, Assets) into setup installers
+        makensis /DARCH=win-x64 windows\installer.nsi
+        makensis /DARCH=win-arm64 windows\installer.nsi
 
-    - name: Upload NSIS Installer Setup (EXE)
+    - name: Upload NSIS Installers (EXE)
       uses: actions/upload-artifact@v4
       with:
-        name: KiteCoreSystemMonitor-NSIS-Installer
-        path: windows/bin/Release/net10.0-windows10.0.26100.0/win-x64/KiteCoreSystemMonitor_Setup.exe
+        name: KiteCoreSystemMonitor-NSIS-Installers
+        path: |
+          windows/bin/Release/net10.0-windows10.0.26100.0/win-x64/KiteCoreSystemMonitor_Setup_win-x64.exe
+          windows/bin/Release/net10.0-windows10.0.26100.0/win-arm64/KiteCoreSystemMonitor_Setup_win-arm64.exe
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          windows/bin/Release/net10.0-windows10.0.26100.0/win-x64/KiteCoreSystemMonitor_Setup_win-x64.exe
+          windows/bin/Release/net10.0-windows10.0.26100.0/win-arm64/KiteCoreSystemMonitor_Setup_win-arm64.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

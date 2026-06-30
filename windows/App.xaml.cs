@@ -21,7 +21,6 @@ namespace KiteCoreWindowsMonitor;
 /// </summary>
 public partial class App : Application
 {
-    private static System.Threading.Mutex? _mutex;
     private Window? _window;
     
     /// <summary>
@@ -30,12 +29,6 @@ public partial class App : Application
     /// </summary>
     public App()
     {
-        _mutex = new System.Threading.Mutex(true, "KiteCoreSystemMonitorSingleInstanceMutex", out bool createdNew);
-        if (!createdNew)
-        {
-            System.Environment.Exit(0);
-            return;
-        }
         System.Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", System.AppContext.BaseDirectory);
         InitializeComponent();
     }
@@ -46,6 +39,15 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
+        var current = System.Diagnostics.Process.GetCurrentProcess();
+        var processes = System.Diagnostics.Process.GetProcessesByName(current.ProcessName);
+        if (processes.Length > 1)
+        {
+            // Another instance is already running. Exit cleanly and gracefully.
+            Application.Current.Exit();
+            return;
+        }
+
         _window = new MainWindow();
         _window.Activate();
     }

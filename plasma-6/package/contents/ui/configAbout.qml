@@ -20,7 +20,7 @@ Item {
         }
 
         Label {
-            text: i18n("Version 1.0.0")
+            text: i18n("Version 1.0.1")
             font.italic: true
         }
 

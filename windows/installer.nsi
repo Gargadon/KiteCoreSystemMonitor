@@ -3,15 +3,18 @@ Unicode true
 
 ; Product Name and Publisher
 !define PRODUCT_NAME "Kite Core System Monitor"
-!define PRODUCT_VERSION "1.0.0"
+!define PRODUCT_VERSION "1.0.1"
 !define PRODUCT_PUBLISHER "Kite Core Dev"
 !define PRODUCT_WEB_SITE "https://github.com/dkant/KiteCoreSystemMonitor"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\KiteCoreWindowsMonitor.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
-; Target Architecture (x64)
+; Target Architecture
 !include "x64.nsh"
+!ifndef ARCH
+  !define ARCH "win-x64"
+!endif
 
 ; Modern UI 2
 !include "MUI2.nsh"
@@ -37,7 +40,7 @@ Unicode true
 
 ; General Settings
 Name "${PRODUCT_NAME}"
-OutFile "bin\Release\net10.0-windows10.0.26100.0\win-x64\KiteCoreSystemMonitor_Setup.exe"
+OutFile "bin\Release\net10.0-windows10.0.26100.0\${ARCH}\KiteCoreSystemMonitor_Setup_${ARCH}.exe"
 InstallDir "$PROGRAMFILES64\KiteCoreSystemMonitor"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -53,7 +56,7 @@ Section "Principal" SEC01
   SetOverwrite ifnewer
   
   ; Copy the publish output recursively (EXE, DLLs, assets)
-  File /r "bin\Release\net10.0-windows10.0.26100.0\win-x64\publish\*.*"
+  File /r "bin\Release\net10.0-windows10.0.26100.0\${ARCH}\publish\*.*"
   File "Assets\AppIcon.ico"
   
   ; Create shortcuts
